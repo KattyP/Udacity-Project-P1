@@ -1,0 +1,302 @@
+Prosper Loan Data by Katherine perry
+========================================================
+
+> **Tip**: You will see quoted sections like this throughout the template to
+help you construct your report. Make sure that you remove these notes before
+you finish and submit your project!
+
+> **Tip**: One of the requirements of this project is that your code follows
+good formatting techniques, including limiting your lines to 80 characters or
+less. If you're using RStudio, go into Preferences \> Code \> Display to set up
+a margin line to help you keep track of this guideline!
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# Load all of the packages that you end up using in your analysis in this code
+# chunk.
+library(ggplot2)
+library(knitr)
+library(dplyr)
+# Notice that the parameter "echo" was set to FALSE for this code chunk. This
+# prevents the code from displaying in the knitted HTML output. You should set
+# echo=FALSE for all code chunks in your file, unless it makes sense for your
+# report to show the code that generated a particular plot.
+
+# The other parameters for "message" and "warning" should also be set to FALSE
+# for other code chunks once you have verified that each plot comes out as you
+# want it to. This will clean up the flow of your report.
+
+```
+
+```{r echo=FALSE, Load_the_Data}
+# Load the Data
+loanData <- read.csv('prosperloandata.csv')
+```
+
+> **Tip**: Before you create any plots, it is a good idea to provide a short
+introduction into the dataset that you are planning to explore. Replace this
+quoted text with that general information!
+
+# Univariate Plots Section
+
+> **Tip**: In this section, you should perform some preliminary exploration of
+your dataset. Run some summaries of the data and create univariate plots to
+understand the structure of the individual variables in your dataset. Don't
+forget to add a comment after each plot or closely-related group of plots!
+There should be multiple code chunks and text sections; the first one below is
+just to help you get started.
+
+```{r echo=FALSE, Univariate_Plots}
+names(loanData)
+str(loanData)
+
+```
+```{r loan_status}
+
+ggplot(aes(x = LoanStatus), data = loanData) + geom_bar() + theme(axis.text.x = element_text(angle = 90))
+table(loanData$LoanStatus)
+```
+
+> It appears most of the data is for loans with a loan status of current or completed
+
+```{r Employment_Status}
+ggplot(aes(x = EmploymentStatus), data = loanData) + geom_bar() + theme(axis.text.x = element_text(angle = 90))
+table(loanData$EmploymentStatus)
+```
+
+> Most people in the data are either employed, with only 835 observations for not employed, 795 for retired.  There are 2,255 entries with a blank status and 5,347 with the employment status 'Not available'
+
+```{r debt_to_income_ratio}
+ggplot(aes(x = DebtToIncomeRatio), data = loanData) + 
+  geom_histogram(binwidth = 0.05) +
+  xlim(0,1)
+summary(loanData$DebtToIncomeRatio)
+```
+#Debt to income ratio should fall between 0 and 1.  There appears to outliers in the data.  This could mean that either there's an error in the data or potentially a retired person with no income and a high loan value? 
+
+```{r StatedMonthlyIncome}
+ggplot(aes(x = StatedMonthlyIncome), data = loanData) + 
+  geom_histogram(binwidth = 1000) +
+  xlim(0, quantile(loanData$StatedMonthlyIncome, 0.99))
+summary(loanData$StatedMonthlyIncome)
+
+with(subset(loanData, StatedMonthlyIncome > 1000000), table(IncomeVerifiable))
+```
+#Stated monthly income has a significant tail to the left with an outlier of a stated monthly income that seems incredibly high. The income is false under incomeverifiable, so likely to be incorrect data FIND THE PROPER TERM FOR THIS KIND OF OUTLIER. 
+
+```{r LoanOriginalAmount}
+
+ggplot(aes(x = LoanOriginalAmount), data = loanData) + 
+  geom_histogram(binwidth = 2000) +
+  xlim(0,quantile(loanData$LoanOriginalAmount, 0.99))
+
+
+
+```
+```{r ListingCategory}
+loanData$ListingCategory <- factor(loanData$ListingCategory..numeric., labels=c("Not Available", "Debt Consolidation", "Home Improvement", "Business", "Personal loan", "Student Use", "Auto", "Other", "Baby & Adoption", "Boat", "Cosmetic Procedures", "Engagement Ring", "Green Loans", "Household Expenses", "Large Purchases", "Medical/Dental", "Motorcycle", "RV", "Taxes", "Vacation", "Wedding Loans"))
+
+ggplot(aes(x = ListingCategory), data = loanData) + geom_bar() + theme(axis.text.x = element_text(angle = 90))
+
+summary(loanData$ListingCategory)
+
+
+```
+> The majority of loans are for debt consolidation
+
+```{r loan year}
+install.packages("lubridate")
+library("lubridate")
+
+loanData$Loan_date <- as.Date(ymd_hms(loanData$LoanOriginationDate))
+loanData$year <- as.numeric(format(loanData$Loan_date, format = "%Y"))
+loanData$month <- as.numeric(format(loanData$Loan_date, format = "%m"))
+loanData$day <- as.numeric(format(loanData$Loan_date, format = "%d"))
+
+```
+
+
+> **Tip**: Make sure that you leave a blank line between the start / end of
+each code block and the end / start of your Markdown text so that it is
+formatted nicely in the knitted text. Note as well that text on consecutive
+lines is treated as a single space. Make sure you have a blank line between
+your paragraphs so that they too are formatted for easy readability.
+
+# Univariate Analysis
+
+> **Tip**: Now that you've completed your univariate explorations, it's time to
+reflect on and summarize what you've found. Use the questions below to help you
+gather your observations and add your own if you have other thoughts!
+
+### What is the structure of your dataset?
+
+### What is/are the main feature(s) of interest in your dataset?
+
+### What other features in the dataset do you think will help support your \
+investigation into your feature(s) of interest?
+
+### Did you create any new variables from existing variables in the dataset?
+
+### Of the features you investigated, were there any unusual distributions? \
+Did you perform any operations on the data to tidy, adjust, or change the form \
+of the data? If so, why did you do this?
+
+
+# Bivariate Plots Section
+
+> **Tip**: Based on what you saw in the univariate plots, what relationships
+between variables might be interesting to look at in this section? Don't limit
+yourself to relationships between a main output feature and one of the
+supporting variables. Try to look at relationships between supporting variables
+as well.
+
+```{r echo=FALSE, Bivariate_Plots}
+
+```
+
+# Bivariate Analysis
+```{r loan_status bivariate}
+
+ggplot(aes(x = year, y = LoanStatus), data = loanData) + geom_point() + facet_wrap(~ListingCategory)
+
+```
+
+```{r Monthly loan payment}
+#Monthly loan payment
+#plots the monthly loan payment by the employment status
+ggplot(aes(x = MonthlyLoanPayment), data = loanData) + 
+  geom_histogram() +
+  facet_wrap(~EmploymentStatus)
+  
+#stated monthly income
+#what's the average loan by income size?
+
+#omits na rows for the employment status variable
+ggplot(aes(x = MonthlyLoanPayment), data = subset(loanData, !is.na(EmploymentStatus))) + 
+  geom_histogram()
+  
+
+qplot(x = loanData$StatedMonthlyIncome, data = subset(loanData, !is.na(EmploymentStatus)), xlim = c(0,10000), breaks = seq(0,10000,500))
+qplot(x = loanData$StatedMonthlyIncome, data = loanData, xlab = 'Monthly Income', ylab = 'Number of loans', binwidth = 1000, xlim = c(0,10000), color = I('black'), fill = I('#099DD9')) + facet_wrap(~LoanStatus)
+ggplot(aes(x = StatedMonthlyIncome), data = loanData, xlim = c(0,10000), breaks = seq(0,10000,500)) + geom_histogram() + scale_x_log10()
+#the y value turns it into a proportion of the total rather than a count.
+qplot(x = StatedMonthlyIncome, 
+      y = ..count../sum(..count..), 
+      data = loanData, 
+      xlab = 'Monthly Income',
+      ylab = 'Proportion of total',
+      binwidth = 100, geom = 'freqpoly',
+      color = LoanStatus) + scale_x_continuous(lim = c(0,1000), breaks = seq(0, 10000, 500))
+table(loanData$IncomeRange)
+#sum of stated montly income by loan status. Output is a table
+by(loanData$StatedMonthlyIncome, loanData$LoanStatus, sum)
+#Use coord cartesian so that if you use the summary function the answer will come out the same as the boxplot, if you use ylim in the qplot function the two answers won't match
+qplot(x = LoanStatus, y = StatedMonthlyIncome, data = loanData, geom = 'boxplot') + coord_cartesian(ylim = c(0,10000))
+by(loanData$StatedMonthlyIncome, loanData$LoanStatus, summary)
+
+
+#using > 0 creates a true, false logic to the data. ie has the loan amount had a delinquent value? if more than 0 then it's true 
+summary(loanData$AmountDelinquent>0)
+
+#monthly loan payment
+#when calculating proportion of income, some answers were significantly more than one.  seems to be some outliers in the data.
+monthlyIncome <- loanData$StatedMonthlyIncome >= 100
+monthlyPayment <- loanData$MonthlyLoanPayment >= 100
+qplot(x = MonthlyLoanPayment, data = loanData)
+proportionOfIncome <- monthlyIncome / monthlyIncome
+qplot(x = LoanOriginationDate, 
+      y = proportionOfIncome, 
+      data = loanData, ylim = c(0,.5))
+#using alpha within geom_point makes each black dot = 20 each creates the transperancy
+ggplot(aes(x = LoanOriginationDate, 
+           y = proportionOfIncome), 
+       data = loanData) + 
+  geom_point(alpha = 1/20) + 
+  ylim(1,1.5)
+summary(proportionOfIncome)
+```
+
+
+
+> **Tip**: As before, summarize what you found in your bivariate explorations
+here. Use the questions below to guide your discussion.
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. How did the feature(s) of interest vary with other features in \
+the dataset?
+
+### Did you observe any interesting relationships between the other features \
+(not the main feature(s) of interest)?
+
+### What was the strongest relationship you found?
+
+
+# Multivariate Plots Section
+
+> **Tip**: Now it's time to put everything together. Based on what you found in
+the bivariate plots section, create a few multivariate plots to investigate
+more complex interactions between variables. Make sure that the plots that you
+create here are justified by the plots you explored in the previous section. If
+you plan on creating any mathematical models, this is the section where you
+will do that.
+
+```{r echo=FALSE, Multivariate_Plots}
+
+```
+
+# Multivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. Were there features that strengthened each other in terms of \
+looking at your feature(s) of interest?
+
+### Were there any interesting or surprising interactions between features?
+
+### OPTIONAL: Did you create any models with your dataset? Discuss the \
+strengths and limitations of your model.
+
+------
+
+# Final Plots and Summary
+
+> **Tip**: You've done a lot of exploration and have built up an understanding
+of the structure of and relationships between the variables in your dataset.
+Here, you will select three plots from all of your previous exploration to
+present here as a summary of some of your most interesting findings. Make sure
+that you have refined your selected plots for good titling, axis labels (with
+units), and good aesthetic choices (e.g. color, transparency). After each plot,
+make sure you justify why you chose each plot by describing what it shows.
+
+### Plot One
+```{r echo=FALSE, Plot_One}
+
+```
+
+### Description One
+
+
+### Plot Two
+```{r echo=FALSE, Plot_Two}
+
+```
+
+### Description Two
+
+
+### Plot Three
+```{r echo=FALSE, Plot_Three}
+
+```
+
+### Description Three
+
+------
+
+# Reflection
+
+> **Tip**: Here's the final step! Reflect on the exploration you performed and
+the insights you found. What were some of the struggles that you went through?
+What went well? What was surprising? Make sure you include an insight into
+future work that could be done with the dataset.
+
+> **Tip**: Don't forget to remove this, and the other **Tip** sections before
+saving your final work and knitting the final report!
