@@ -71,14 +71,14 @@ Stated monthly income has a significant tail to the left with an outlier of a st
 
 The median stated monthly income is $4,667 while the average monthly income is $5,608.  The identified outlier generates a higher average, but there are such a high number of observations that the outlier doesn't have as much of an effect as it would have with fewer observations.  
 
-```{r Stated Monthly Income}
+```{r Stated Monthly Income, echo=FALSE, message=FALSE, warning=FALSE}
 summary(loanData$StatedMonthlyIncome)
 
 with(subset(loanData, StatedMonthlyIncome > 1000000), table(IncomeVerifiable))
 ```
 
 
-```{r Stated Montly Income 2, message=FALSE, warning=FALSE}
+```{r Stated Montly Income 2, echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(aes(x = StatedMonthlyIncome), data = loanData) + 
   geom_histogram(binwidth = 1000, fill  = "blue") +
   xlim(0, quantile(loanData$StatedMonthlyIncome, 0.99)) +
@@ -125,7 +125,7 @@ Most of the data is for loans with a loan status of current or completed. There 
 
 In future plots I will combine the loans with a status of Past Due and treat them as one category.
 
-```{r Loan Status, message=FALSE, warning=FALSE}
+```{r Loan Status, echo=FALSE, message=FALSE, warning=FALSE}
 
 ggplot(aes(x = LoanStatus), data = loanData) + 
   geom_bar(fill = "blue") + 
@@ -143,7 +143,7 @@ ggplot(aes(x = LoanStatus), data = loanData) +
 The median loan amount is for $6,500 with the maximum loan amount of $35,000.  Based on information from the website, it appears that $35,000 was the maximum allowable amount.
 
 
-```{r Loan Original Amount, message=FALSE, warning=FALSE}
+```{r Loan Original Amount, echo=FALSE, message=FALSE, warning=FALSE}
 
 ggplot(aes(x = LoanOriginalAmount), data = loanData) + 
   geom_histogram(binwidth = 2000, fill = "blue") +
@@ -504,7 +504,7 @@ Borrowers who are not employed or have a lower income ($1 - $24,999) have a high
 
 Borrowers with an income of zero recorded a lower borrower rate and lower lender yield. There are only 621 loans with an income of $0.   
 
-```{r }
+```{r Income Range by Lender Yield, echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(aes(x = IncomeRange, y = BorrowerRate), data = loanData) + 
   geom_boxplot(aes(fill = IncomeRange), show.legend = F)
 
@@ -525,7 +525,7 @@ On average the borrower rate for a loan with a prosper rating is 31.73%, while t
 The average lender yield ranges from 30.73% for an HR rated loan to 7.45% for a loan rated AA.
 
 
-```{r}
+```{r Rating by Lender Yield, echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(aes(x = ProsperRating..Alpha., y = LenderYield), data = subset(loanData, ProsperRating..Alpha. != "NA")) + 
   geom_boxplot(aes(fill = ProsperRating..Alpha.), show.legend = F) +
   xlab("Prosper Rating")
@@ -544,7 +544,7 @@ Unemployed borrowers followed by borrowers with an income range of $1 - $24,999 
 
 This may point to an opporturnity to invest in a lower risk loan with a higher yield relative to borrowers with no recorded income.
 
-```{r}
+```{r Income Range by Lender Yield, echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(aes(x = IncomeRange, y = LenderYield), data = loanData) + 
   geom_boxplot(aes(fill = IncomeRange), show.legend = F)
 ```
@@ -553,7 +553,7 @@ ggplot(aes(x = IncomeRange, y = LenderYield), data = loanData) +
 
 Lender yield is highest for loans with a debt to income ratio of between 0.75 and 1.
 
-```{r}
+```{r DTI by Lender Yield, echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(aes(x = DTI, y = LenderYield), data = loanData) + geom_boxplot(aes(fill = DTI), show.legend = F)
 ```
 
@@ -563,7 +563,7 @@ The lender yield is higher for loans with a higher risk, however the estimated l
 
 We can see as the borrower rate increases the estimated principal loss on charge-offs also increases.
 
-```{r warning=FALSE, message=FALSE}
+```{r Prosper Rating by Esimated Loss, echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(aes(x = ProsperRating..Alpha., y = EstimatedLoss), data = subset(loanData, ProsperRating..Alpha. != "NA")) + 
   geom_boxplot(aes(fill = ProsperRating..Alpha.), show.legend = F) +
   xlab("Prosper Rating")
@@ -582,7 +582,7 @@ The graph below shows the proportion of defaulted and charged off loans signific
 
 Taking a closer look at the data we can see that loans with a lender yield of more than 0.35 are all from the year 2006.  It might be that after 2006 tighter criteria was placed around borrower rate.  There are also only a small number of loans with a lender yield of more than 0.35.
 
-```{r echo=FALSE, warning=FALSE, Multivariate_Plots}
+```{r Lender Yield by Loan Status, echo=FALSE, warning=FALSE, Multivariate_Plots}
 ggplot(aes(x = LenderYield, y = ..count.., fill = LoanCategory), data = subset(loanData, LoanCategory != "Current")) +
   geom_density(position = "fill") +
   ylab("Proportion of Loans") +
@@ -616,7 +616,7 @@ Interestingly self-employed have a lower average lender yield than their employe
 
 The overall average lender yield runs in line with employed borrowers this is due to employed borrowers accounting for the majority of loans (over 80%).
 
-```{r warning=FALSE}
+```{r Prosper Score by Lender Yield, echo=FALSE, message=FALSE, warning=FALSE}
 
 ggplot(aes(x = ProsperScore, y = LenderYield), data = loanData) + 
   geom_line(aes(color = EmploymentCategory), stat = 'summary', fun.y = mean) +
@@ -635,14 +635,14 @@ ggplot(aes(x = ProsperScore, y = LenderYield), data = loanData) +
 Plotting estimated loss with borrower rate and prosper rating shows a clear bands of Prosper Ratings by estimated loss. We can also see a trend in borrower rate by Prosper Rating with lower risk loans recording a lower borrower rate.
 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r Prosper Rating by Estimated Loss and Borrower Rate, echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(aes(x = BorrowerRate, y = EstimatedLoss), data = loanData) +
   geom_jitter(aes(colour = ProsperRating..Alpha.)) +
   geom_smooth()
 ```
 
 
-```{r}
+```{r Prosper Rating by Loan Status and Rating, echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(aes(x = ProsperRating..Alpha.), data = subset(loanData, LoanCategory != "Current" & LoanCategory != "FinalPaymentInProgress")) +
   geom_bar(aes(fill = LoanCategory), position = "fill") +
   facet_wrap(~IncomeRange, ncol = 2)
@@ -650,7 +650,7 @@ ggplot(aes(x = ProsperRating..Alpha.), data = subset(loanData, LoanCategory != "
 ```
 
 
-```{r warning=FALSE}
+```{r Prosper Rating by DTI and Estimated Loss, echo=FALSE, message=FALSE, warning=FALSE}
 
 
 
