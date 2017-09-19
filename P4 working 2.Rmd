@@ -1,8 +1,8 @@
 ---
 title: "Exploratory Data Analysis"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -20,6 +20,7 @@ library(knitr)
 library(dplyr)
 library(GGally)
 library(lubridate)
+library(tibble)
 
 ```
 
@@ -276,13 +277,13 @@ loanData$day <- as.numeric(format(loanData$Loan_date, format = "%d"))
 
 ```
 
-**Loan timing**
+**Loan Timing**
 
 I used the lubridate package to split the loan origination date data into day, month and year. Looking at the number of loans per year I noticed dips in the data.  I then pulled the information by year and month to try and see if this offers more information.  From this I can see that we don't have the full year of information for 2005 and 2014 and there is a clear break between 2008 and 2009. 
 
 After falling to 2009, the number of loans with prosper increased to 2013. The significant drop in the number of loans in 2014 is because the Prosper Loan dataset used for this project only has data till March 2014.  Prosper was founded in 2005 which is why we have only limited data for 2005. Prosper Loans increased in popularity through 2006 and 2007. In 2008 it appears Prosper temporarily closed their doors, relaunching in 2009.  Because of these gaps in the data it is somewhat difficult to draw information about the loan characteristics over time.  
 
-When we look at the number of loans by month it appears that leading up to Christmas and in the New Year is a popular time of year to borrow. 
+Limitations aside, when we look at the number of loans by month it appears that leading up to Christmas and in the New Year is a popular time of year to borrow. 
 
 ```{r Loan Timing, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -320,31 +321,7 @@ ggpairs(loanData_subset[sample.int(nrow(loanData_subset), 1000),])
 
 ```
 
-**Lender yield by year**
 
-I was curious to see if the average lender yield would change over time.  Would the lender yield increase as the company became more establised and sophisticated? Or remain stable over time?
-
-To a point the average lender yield increased over the life of the company, peaking in 2011. However, post 2011 the average lender yield showed a steady decline to 2014.  
-
-I decided to look at the average debt to income ratio by year to see if any additional patterns emerged. Interestingly the debt to income ratio was highest in 2007, right before the Global Financial Crisis of 2007 - 2009. From 2010 the average debt to income ratio remained relatively stable.
-
-```{r Lender Yield by Year, echo=FALSE, message=FALSE, warning=FALSE}
-
-ggplot(aes(x = year, y = LenderYield), data = loanData) +
-  stat_summary(fun.y = mean, geom = "line") +
-  geom_smooth() +
-  scale_x_continuous(breaks = 2005:2014) +
-  xlab("Year") +
-  ylab("Lender Yield")
-
-ggplot(aes(x = year, y = DebtToIncomeRatio), data = loanData) +
-  stat_summary(fun.y = mean, geom = "line") +
-  geom_smooth() +
-  scale_x_continuous(breaks = 2005:2014) +
-  xlab("Year") +
-  ylab("Debt to Income Ratio")
-
-```
 
 
 **Do employed borrowers have a lower risk rating?**
@@ -369,6 +346,7 @@ ggplot(aes(x = ProsperRating..Alpha.), data = subset(loanData, ProsperRating..Al
   geom_bar(aes(fill = ProsperRating..Alpha.), show.legend=F) +
   xlab("Prosper Rating")
 
+
 by(loanData$ProsperRating..numeric., loanData$EmploymentCategory, summary)
 
 ```
@@ -377,7 +355,7 @@ by(loanData$ProsperRating..numeric., loanData$EmploymentCategory, summary)
 
 Borrowers with an employment status of 'other' and 'self-employed' appear to have more loans with a higher risk rating (lower score) while 'retired' borrowers have more scores with a lower risk (higher score).  
 
-It's interesting that retired borrowers have a higher number of borrowers with a Prosper Rating of D, and yet seem to have a high number of borrowers with a high Prosper Score. 
+It is interesting that retired borrowers have a higher number of borrowers with a Prosper Rating of D, and yet seem to have a high number of borrowers with a high Prosper Score. 
 
 ```{r Employment Status by Prosper Score, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -391,18 +369,7 @@ by(loanData$ProsperScore, loanData$EmploymentCategory, summary)
 
 ```
 
-**Does the employment status effect the borrower rate?**
 
-Loans with an employment status of 'not employed' have a higher borrower rate and in turn lender yield.  As such it seems that the higher risk loans have higher returns. The average borrower rate for someone employed is lower than someone who is unemployed. The average self-employed borrower rate is also slightly higher than that of their employed counterparts.
-
-```{r Employment by Borrower Rate, echo=FALSE, message=FALSE, warning=FALSE}
-
-ggplot(aes(x = EmploymentCategory, y = BorrowerRate), data = subset(loanData, EmploymentCategory != "NA")) + 
-  geom_boxplot(aes(fill = EmploymentCategory), show.legend = F) + 
-  xlab("Employment Status") +
-  ylab("Borrower Rate")
-
-```
 
 **Do unemployed borrowers have a higher proportion of loans that are charged off, defaulted or past due?**
 
@@ -433,7 +400,7 @@ ggplot(aes(x = EmploymentCategory, fill = LoanCategory), data = subset(loanData,
 
 **Do borrowers with higher income have a lower risk loan?**
 
-Borrowers with higher income (more than $75,000) have a higher incident of loans with a prosper score of 8. When we investigate the statistics by income range we can see that the average Prosper Score increases with the income range. The average Prosper Score of borrowers who are not employed is similar to borrowers with an income range of $25,000 - $49,999.   
+Borrowers with higher income (more than $75,000) have a higher incident of loans with a prosper score of 8. When we look at the summary by income range we can see that the average Prosper Score increases with the income range. The average Prosper Score of borrowers who are not employed is similar to borrowers with an income range of $25,000 - $49,999.   
 
 As expected the Borrower's Prosper Rating also increases with a higher income.
 
@@ -452,7 +419,7 @@ by(loanData$ProsperScore, loanData$IncomeRange, summary)
 
 **Are borrowers with a lower income spending more of their income on their loan?**
 
-Borrowers with a stated monthly income of less than 500 have a high debt to income ratio, as the stated montly income increases we can see a significant fall in the debt to income ratio.
+Borrowers with a stated monthly income of less than $500 have a high debt to income ratio, as the stated montly income increases we can see a significant fall in the debt to income ratio.
 
 ```{r DTI by Income, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -467,7 +434,7 @@ ggplot(aes(x = StatedMonthlyIncome, y = DebtToIncomeRatio), data = loanData) +
 
 **Does the debt to income ratio have an effect on the Prosper Rating?**
 
-Loans with a lower debt to income ratio have a higher prosper rating on average, representing a lower risk loan. Does having a low debt to income ratio and lower risk tranlate into a higher proportion of loans completing?
+Loans with a lower debt to income ratio have a higher prosper rating on average, representing a lower risk loan. I will look into if having a low debt to income ratio and lower risk translates into a higher proportion of loans completing?
 
 ```{r DTI by Risk Rating, message=FALSE, echo=FALSE, warning=FALSE}
 
@@ -502,6 +469,8 @@ ggplot(aes(x = DTI, fill = LoanCategory), data = subset(loanData, DTI != "NA" & 
 
 Loans with a higher prosper rating have a higher proportion of completed loans.  The riskier the loan the higher the charged off rate. Loans with higher risk also have a higher proportion of loans with a status of past due.
 
+We can see a similar trend when looking at the Prosper Score. That is to say, loans with a higher prosper score (indicating lower risk) recorded a higher proportion of completed loans. Loans with higher risk recorded a higher proportion of charged off and defaulted loans.
+
 ```{r Loan Status by Prosper Rating, echo=FALSE, message=FALSE, warning=FALSE}
 
 ggplot(aes(x = ProsperRating..Alpha., fill = LoanCategory), data = subset(loanData, ProsperRating..Alpha. != "NA" & LoanCategory != "NA" & LoanCategory != "Current")) + 
@@ -519,29 +488,42 @@ ggplot(aes(x = ProsperScore, fill = LoanCategory), data = subset(loanData, LoanC
 
 ```
 
-**Risk summary**
+**Risk Summary**
 
-We can see that there are a number of loan characteristics that have a higher risk and in turn a higher proportion of loans with a status of charged off, past due and defaulted.
+So far I have focused on loan characteristics associated with the risk of the loan. 
 
-The employment status and debt to income ratio have an effect on both the rating and outcome of the loans.  Furthermore the ratings seem to be accurately indicating the risk of loans with lower risk loans recording a higher proportion of completions.
+There are a number of loan characteristics that are categorised as having a higher risk. The analysis so far has shown that loans with a higher risk rating have a higher proportion of loans with a status of charged off, past due and defaulted.
+
+Employment status and debt to income ratio have an effect on both the rating and outcome of the loans.  Furthermore, the ratings seem to be accurately indicating the risk of loans with lower risk loans recording a higher proportion of completions.
 
 #What loan characteristics result in a higher lender yield?
 
-**Lender yield over time**
+**Lender Yield by Year**
 
-With the aforementioned data limitations in mind (i.e. we only have partial data for 2005, 2008, 2009 and 2014) the graph below shows the yield over time.
+I was curious to see if the average lender yield would change over time.  Would the lender yield increase as the company became more establised and sophisticated? Or remain stable over time?
 
-The average lender yield increased from 2008 to 2011 before falling to 2014.
+To a point the average lender yield increased over the life of the company, peaking in 2011. However, post 2011 the average lender yield showed a steady decline to 2014.  
 
-```{r Lender Yield Over Time, echo=FALSE, message=FALSE, warning=FALSE}
+I decided to look at the average debt to income ratio by year to see if any additional patterns emerged. Interestingly the debt to income ratio was highest in 2007, right before the Global Financial Crisis of 2007 - 2009. From 2010 the average debt to income ratio remained relatively stable.
 
-ggplot(aes(x = year, group = year, y = LenderYield), data = loanData) + 
-  geom_boxplot(aes(fill = year), show.legend = F) +
+```{r Lender Yield by Year, echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(aes(x = year, y = LenderYield), data = loanData) +
+  stat_summary(fun.y = mean, geom = "line") +
+  geom_smooth() +
   scale_x_continuous(breaks = 2005:2014) +
   xlab("Year") +
   ylab("Lender Yield")
 
+ggplot(aes(x = year, y = DebtToIncomeRatio), data = loanData) +
+  stat_summary(fun.y = mean, geom = "line") +
+  geom_smooth() +
+  scale_x_continuous(breaks = 2005:2014) +
+  xlab("Year") +
+  ylab("Debt to Income Ratio")
+
 ```
+
 
 **Does estimated yield accurately predict lender yield?**
 
@@ -570,16 +552,33 @@ Borrowers with an income of zero recorded a lower borrower rate and lower lender
 ```{r Income Range by Borrower and Lender Yield, echo=FALSE, message=FALSE, warning=FALSE}
 
 ggplot(aes(x = IncomeRange, y = BorrowerRate), data = loanData) + 
-  geom_boxplot(aes(fill = IncomeRange), show.legend = F)
+  geom_boxplot(aes(fill = IncomeRange), show.legend = F) +
+  xlab("Income Range") +
+  ylab("Borrower Rate") 
 
 ggplot(aes(x = IncomeRange, y = LenderYield), data = loanData) + 
-  geom_boxplot(aes(fill = IncomeRange), show.legend = F)
+  geom_boxplot(aes(fill = IncomeRange), show.legend = F) +
+  xlab("Income Range") +
+  ylab("Lender Yield")
 
 summary(loanData$IncomeRange)
 
 with(subset(loanData), table(ListingCategory, IncomeRange))
 
-#by(loanData$ListingCategory, loanData$IncomeRange, summary)
+by(loanData, loanData$ListingCategory, function(x) loanData$ListingCategory/sum(loanData$IncomeRange))
+
+```
+
+**Does the employment status effect the borrower rate?**
+
+Loans with an employment status of 'not employed' have a higher borrower rate and in turn lender yield.  As such it seems that the higher risk loans have higher returns. The average borrower rate for someone employed is lower than someone who is unemployed. The average self-employed borrower rate is also slightly higher than that of their employed counterparts.
+
+```{r Employment by Borrower Rate, echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(aes(x = EmploymentCategory, y = BorrowerRate), data = subset(loanData, EmploymentCategory != "NA")) + 
+  geom_boxplot(aes(fill = EmploymentCategory), show.legend = F) + 
+  xlab("Employment Status") +
+  ylab("Borrower Rate")
 
 ```
 
@@ -678,11 +677,9 @@ ggplot(aes(x = LenderYield, y = ..count.., fill = LoanCategory), data = subset(l
 with(subset(loanData, LenderYield > 0.35), table(LoanCategory, year))
 ```
 
-**Risk summary**
-
 Higher risk loans come with a higher borrower rate and therefore a higher lender yield. Prosper loans follow higher risk, higher returns. Higher risk loans also come with a higher estimated loss.
 
-There's a significant increase of charged off and defaulted loans as the lender yield increases.
+There's a significant increase of charged off and defaulted loans as the lender yield increases
 
 # Multivariate Analysis
 
