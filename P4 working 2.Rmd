@@ -1,8 +1,8 @@
 ---
 title: "Exploratory Data Analysis"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-Prosper Loan Data by Katherine perry
+Prosper Loan Data by Katherine Perry
 ========================================================
 
 ```{r Packages, echo=FALSE, message=FALSE, warning=FALSE}
@@ -20,7 +20,10 @@ library(knitr)
 library(dplyr)
 library(GGally)
 library(lubridate)
-library(tibble)
+#library(tibble)
+library(tidyr)
+
+#look into position to make the graph output readable.
 
 ```
 
@@ -51,11 +54,31 @@ What is the potential yield of the investment?
 ##Univariate Analysis
 Firstly I'll investigate the variables to gain a better understanding of the data.  I'll have a focus on characteristics of the borrower and the return of loans.
 
-**Employment Staus**
+**Listing Category**
 
-Most people in the dataset are employed (including full-time, part-time and self-employed), with only 835 observations for not employed, 795 for retired and 3,806 other.  There are 2,255 entries with a blank status and 5,347 with the employment status 'Not available'. I would like to find out if employed borrowers a lower risk investment than their unemployed counter parts.
+I'll start by finding out why people borrow from Prosper.
 
-In future plots I'll combine and treat employed as one category to include employed, full-time and part-time.  I'll leave self-employed as a seperate category as there might be some interesting characteristcs of loans where the borrower is self-employed.
+The majority of loans are for debt consolidation. Given such a high proportion of loans are for debt consolidation, not available or other, I won't be focussing on the variable in this analysis.
+
+```{r Listing Category, echo=FALSE, message=FALSE, warning=FALSE}
+
+#change numerical category into the named listing for graph readability
+
+loanData$ListingCategory <- factor(loanData$ListingCategory..numeric., labels=c("Not Available", "Debt Consolidation", "Home Improvement", "Business", "Personal loan", "Student Use", "Auto", "Other", "Baby & Adoption", "Boat", "Cosmetic Procedures", "Engagement Ring", "Green Loans", "Household Expenses", "Large Purchases", "Medical/Dental", "Motorcycle", "RV", "Taxes", "Vacation", "Wedding Loans"))
+
+ggplot(aes(x = ListingCategory), data = loanData) + geom_bar(fill = "blue") + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  xlab("Loan Purpose")
+
+summary(loanData$ListingCategory)
+
+```
+
+**Employment Status**
+
+Most people in the dataset are employed (including full-time, part-time and self-employed), with only 835 observations for not employed, 795 for retired and 3,806 other.  There are 2,255 entries with a blank status and 5,347 with the employment status 'Not available'. I would like to find out if employed borrowers have a lower risk rating investment than their unemployed counter parts.
+
+In future plots I'll combine and treat employed as one category to include employed, full-time and part-time.  I'll leave self-employed as a separate category as there might be some interesting characteristcs of loans where the borrower is self-employed.
 
 ```{r Employment Status, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -68,6 +91,24 @@ ggplot(aes(x = EmploymentStatus), data = loanData) +
 
 ```
 
+**Employment Duration**
+
+The average employment status duration is 8 years while the first quartile is 2.2 years.  There are two possibilities that come to mind: people who borrow through prosper are often changing their employment status; or people typically borrow early into their employment status.  For example self-employed borrowers borrow during the early stages of their business.
+
+```{r Employment Duration, echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(aes(x = EmploymentStatusDuration/12), data = loanData) +
+  geom_histogram(fill = "blue") +
+  xlab("Duration in Years") 
+
+summary(loanData$EmploymentStatusDuration/12)
+
+```
+
+
+
+
+
 **Stated Monthly Income**
 
 Stated monthly income has a significant tail to the left with an outlier of a stated monthly income that seems incredibly high ($1,750,000). The income is false under income verifiable, so is likely to be incorrect data and is most likely a data entry error. 
@@ -76,7 +117,7 @@ The median stated monthly income is $4,667 while the average monthly income is $
 
 ```{r Stated Monthly Income, echo=FALSE, message=FALSE, warning=FALSE}
 
-#summary of borrower stated income to find out why there's such a long tail
+#summary of borrower stated income to find out why there is such a long tail
 summary(loanData$StatedMonthlyIncome)
 
 with(subset(loanData, StatedMonthlyIncome > 1000000), table(IncomeVerifiable))
@@ -92,7 +133,7 @@ ggplot(aes(x = StatedMonthlyIncome), data = loanData) +
 
 **Income Range**
 
-Albiet a low number of loans, it's interesting that some people who got a loan have zero income or are not employed.  I am interested in finding out what people who have $0 income got their loan for and what is the risk rating of their loan. 
+Albiet a low number of loans, it is interesting that some people who got a loan have zero income or are not employed.  I am interested in finding out what people who have $0 income got their loan for and what is the risk rating of their loan. 
 
 The highest number of loans are for borrowers with an income of $25,000 - 49,000 (32,192 loans) and $50,000 - 99,999 (31,050 loans). I will look into income range by risk rating to see if borrowers with a higher income range are assigned a lower risk score.
 
@@ -152,45 +193,27 @@ ggplot(aes(x = LoanStatus), data = loanData) +
 
 The median loan amount is for $6,500 while the maximum loan amount is $35,000.  Based on information from the Prosper website, it appears that $35,000 is the maximum allowable loan amount.
 
+We can see peaks in the data at certain points that correspond with nice round numbers like 10,000 and 15,000. It might be that borrowers are asking for more than they need and are rounding up to the nearest $5,000 increment. 
 
 ```{r Loan Original Amount, echo=FALSE, message=FALSE, warning=FALSE}
 
 ggplot(aes(x = LoanOriginalAmount), data = loanData) + 
-  geom_histogram(binwidth = 2000, fill = "blue") +
-  xlim(0,quantile(loanData$LoanOriginalAmount, 0.99)) +
+  geom_histogram(binwidth = 1000, fill = "blue") +
   xlab("Original Loan Amount")
 
 summary(loanData$LoanOriginalAmount)
 
 ```
 
-**Listing Category**
 
-The majority of loans are for debt consolidation. Given such a high proportion of loans are for debt consolidation, not available or other, I won't be focussing on the variable to in this analysis.
-
-```{r Listing Category, echo=FALSE, message=FALSE, warning=FALSE}
-
-#change numerical category into the named listing for graph readability
-
-loanData$ListingCategory <- factor(loanData$ListingCategory..numeric., labels=c("Not Available", "Debt Consolidation", "Home Improvement", "Business", "Personal loan", "Student Use", "Auto", "Other", "Baby & Adoption", "Boat", "Cosmetic Procedures", "Engagement Ring", "Green Loans", "Household Expenses", "Large Purchases", "Medical/Dental", "Motorcycle", "RV", "Taxes", "Vacation", "Wedding Loans"))
-
-ggplot(aes(x = ListingCategory), data = loanData) + geom_bar(fill = "blue") + 
-  theme(axis.text.x = element_text(angle = 90)) +
-  xlab("Loan Purpose")
-
-summary(loanData$ListingCategory)
-
-```
 
 **Prosper Rating and Score** 
 
-According to the Prosper website the Prosper Rating assesses the estimated average annualized loss rate range with AA as the lowest risk and HR as the highest risk. 
+According to the Prosper website the Prosper Rating assesses the estimated average annualized loss rate range with AA as the lowest risk and HR as the highest risk. The prosper rating only applies to loans after July 2009. 
 
-The ratings distribution follows a relatively normal distribution with loans rated 'C' recording the highest number of loans at 18,345.  The prosper rating only applies to loans after July 2009. 
+The ratings distribution follows a relatively normal distribution with loans rated 'C' recording the highest number of loans at 18,345.  I am interested in what borrower characteristics result in a loan with a high prosper rating. I am also interested in investigating if loans with a higher rating have a higher proportion of completed loans and if a higher risk loan has a higher return.
 
-I am interested in what borrower characteristics result in a loan with a high prosper rating. I am also interested in investigating if loans with a higher rating have a higher proportion of completed loans and if a higher risk loan has a higher return.
-
-Most prosper loan scores are between 4 and 8. The prosper score reflects borrowers with similar characteristics.  I'm intested to find out what the characteristics generate a good prosper score. 
+Most Prosper loans have a score between 4 and 8. The prosper score reflects borrowers with similar characteristics.  I'm intested to find out what the characteristics generate a good prosper score. 
 
 Loans with a score of 1 represent the highest risk with 11 representing the lowest risk loans.  
 
@@ -232,7 +255,7 @@ ggplot(aes(x = ProsperScore), data = loanData) +
 
 I will look into what loan characteristics result in a higher or lower lender yield and if there is risk associated with loans with a higher lender yield.
 
-The lender yield is equal to the interest rate on the loan less the servicing fee. As such, it is not surprising to discover a corresponding spike in the borrower rate just above the 30% rate. There may be a default borrower rate if certain criteria a met resulting in the spike.
+The lender yield is equal to the interest rate on the loan less the servicing fee. As such, it is not surprising to discover a corresponding spike in the borrower rate just above the 30% rate. There may be a default borrower rate if certain criteria are met, resulting in the spike.
 
 ```{r Lender Yield and Borrower Rate, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -335,7 +358,7 @@ Borrowers who are not employed and to a lesser extent retired borrowers carry a 
 
 #Categorises employed, part-time and full-time into one category (employed)
 
-loanData$EmploymentCategory <- factor(loanData$EmploymentStatus, labels=c("NA", "Employed", "Employed", "Not Available","Not Employed", "Other", "Employed", "Retired", "Self-employed"))
+loanData$EmploymentCategory <- factor(loanData$EmploymentStatus, labels=c("NA", "Employed", "Employed", "NA","Not Employed", "Other", "Employed", "Retired", "Self-employed"))
 
 #rearranges employment status for better flow of information
 
@@ -388,7 +411,7 @@ loanData$LoanCategory[grepl("Past Due",loanData$LoanCategory)]<-"Past Due"
 
 #rearranges the loan status for graph readability
 
-loanData$LoanCategory <- factor(loanData$LoanCategory, levels = c("Cancelled", "Chargedoff", "Defaulted", "Past Due", "FinalPaymentInProgress", "Completed"))
+loanData$LoanCategory <- factor(loanData$LoanCategory, levels = c("Current","Cancelled", "Chargedoff", "Defaulted", "Past Due", "FinalPaymentInProgress", "Completed"))
 
 ggplot(aes(x = EmploymentCategory, fill = LoanCategory), data = subset(loanData, EmploymentCategory != "NA" & LoanCategory != "NA" & LoanCategory != "Current")) + 
     geom_bar(position = "fill") +
@@ -453,7 +476,7 @@ by(loanData$ProsperRating..numeric., loanData$DTI, summary)
 
 Loans with a lower debt to income ratio have a higher proportion of loans that complete, while loans with a higher debt to income ratio have a higher proportion of loans that are charged off and defaulted.
 
-For the purpose of this analysis I've taken out loans with a status as 'Current' this is because I would like to better understand the factors that effect the outcome of the loan.
+Once again, for the next few plots I have taken out loans with a status as 'Current' this is because I would like to better understand the factors that effect the outcome of the loan.
 
 ```{r DTI by Loan Status, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -482,7 +505,7 @@ ggplot(aes(x = ProsperRating..Alpha., fill = LoanCategory), data = subset(loanDa
 ggplot(aes(x = ProsperScore, fill = LoanCategory), data = subset(loanData, LoanCategory != "NA" & LoanCategory != "Current")) + 
     geom_bar(position = "fill") +
   ylab("% of loans") +
-  xlab("Prosper Rating") +
+  xlab("Prosper Score") +
   scale_x_continuous(breaks = 1:11) +
   scale_fill_discrete(name = "Loan Status")
 
@@ -492,9 +515,9 @@ ggplot(aes(x = ProsperScore, fill = LoanCategory), data = subset(loanData, LoanC
 
 So far I have focused on loan characteristics associated with the risk of the loan. 
 
-There are a number of loan characteristics that are categorised as having a higher risk. The analysis so far has shown that loans with a higher risk rating have a higher proportion of loans with a status of charged off, past due and defaulted.
+There are a number of loan characteristics that are categorised as having a higher risk. Employment status and debt to income ratio have an effect on both the rating and outcome of the loans.
 
-Employment status and debt to income ratio have an effect on both the rating and outcome of the loans.  Furthermore, the ratings seem to be accurately indicating the risk of loans with lower risk loans recording a higher proportion of completions.
+The analysis so far has shown that loans with a higher risk rating have a higher proportion of loans with a status of charged off, past due and defaulted.  Furthermore, the ratings seem to be accurately indicating the risk of loans with lower risk loans recording a higher proportion of completions.
 
 #What loan characteristics result in a higher lender yield?
 
@@ -563,10 +586,28 @@ ggplot(aes(x = IncomeRange, y = LenderYield), data = loanData) +
 
 summary(loanData$IncomeRange)
 
-with(subset(loanData), table(ListingCategory, IncomeRange))
+IncomeTable <- as_data_frame(with(subset(loanData), table(ListingCategory, IncomeRange)))
 
-by(loanData, loanData$ListingCategory, function(x) loanData$ListingCategory/sum(loanData$IncomeRange))
+```
 
+**Why do people borrow money from Prosper?**
+
+In the abo
+
+```{r}
+
+IncomeTable2 <-
+  IncomeTable %>%
+  group_by(IncomeRange) %>%
+  mutate(RangeCount = round(n/sum(n)*100)) %>%
+  select(-n) %>%
+  spread(IncomeRange, RangeCount)
+
+IncomeTable2
+#Sum to 1 test - without rounding adds to 100
+#IncomeTable2 %>%
+#  select(-ListingCategory) %>%
+#  summarise_all(.funs = funs(sum) )
 ```
 
 **Does the employment status effect the borrower rate?**
@@ -584,7 +625,7 @@ ggplot(aes(x = EmploymentCategory, y = BorrowerRate), data = subset(loanData, Em
 
 **Do riskier loans have a higher lender yield?**
 
-Loans with a higher risk have a higher borrower rate and in turn a higher lender yield.
+Loans with a higher risk rating have a higher borrower rate and in turn a higher lender yield.
 
 On average the borrower rate for a loan with a prosper rating is 31.73%, while the rate for a loan with an AA rating is around 7.9%. 
 
@@ -593,15 +634,16 @@ The average lender yield ranges from 30.73% for an HR rated loan to 7.45% for a 
 
 ```{r Rating by Lender Yield, echo=FALSE, message=FALSE, warning=FALSE}
 
+ggplot(aes(x = ProsperRating..Alpha., y = BorrowerRate), data = subset(loanData, ProsperRating..Alpha. != "NA")) +
+  geom_boxplot(aes(fill = ProsperRating..Alpha.), show.legend = F) +
+  xlab("Prosper Rating") +
+  ylab("Borrower Rate")
+
 ggplot(aes(x = ProsperRating..Alpha., y = LenderYield), data = subset(loanData, ProsperRating..Alpha. != "NA")) +
   geom_boxplot(aes(fill = ProsperRating..Alpha.), show.legend = F) +
   xlab("Prosper Rating") +
   ylab("Lender Yield")
 
-ggplot(aes(x = ProsperRating..Alpha., y = BorrowerRate), data = subset(loanData, ProsperRating..Alpha. != "NA")) +
-  geom_boxplot(aes(fill = ProsperRating..Alpha.), show.legend = F) +
-  xlab("Prosper Rating") +
-  ylab("Borrower Rate")
 
 by(loanData$BorrowerRate, loanData$ProsperRating..Alpha., summary)
 by(loanData$LenderYield, loanData$ProsperRating..Alpha., summary)
@@ -610,7 +652,7 @@ by(loanData$LenderYield, loanData$ProsperRating..Alpha., summary)
 
 **Lender Yield by Income Range**
 
-Unemployed borrowers followed by borrowers with an income range of $1 - $24,999 recorded the highest lender yield.  We know from above that lenders with an income range of $1 - $24,999 have a higher Prosper rating than unemployed borrowers and borrowers earning no money and a higher Prosper score than borrowers earning no money.
+Unemployed borrowers followed by borrowers with an income range of $1 - $24,999 recorded the highest lender yield.  We know from the previous analysis above that lenders with an income range of $1 - $24,999 have a higher Prosper rating than unemployed borrowers and borrowers earning no money and a higher Prosper score than borrowers earning no money.
 
 This may point to an opporturnity to invest in a lower risk loan with a higher yield relative to borrowers with no recorded income.
 
@@ -639,7 +681,7 @@ ggplot(aes(x = DTI, y = LenderYield), data = loanData) + geom_boxplot(aes(fill =
 
 The lender yield is higher for loans with a higher risk, however the estimated loss is also higher for loans with a higher risk.
 
-We can see as the borrower rate increases the estimated principal loss on charge-offs also increases.
+We can see as the borrower rate increases the estimated principal loss on charge-offs also increases. The relationship is further demonstrated by the high correlation cooefficient between the borrower rate and the estimated principal loss variables (0.945).
 
 ```{r Prosper Rating by Esimated Loss, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -656,6 +698,8 @@ ggplot(aes(x = BorrowerRate, y = EstimatedLoss), data = loanData) +
   geom_smooth() +
   xlab("Borrower Rate") +
   ylab("Estimated Loss")
+
+cor.test(loanData$EstimatedLoss, loanData$BorrowerRate)
 
 ```
 
@@ -679,7 +723,7 @@ with(subset(loanData, LenderYield > 0.35), table(LoanCategory, year))
 
 Higher risk loans come with a higher borrower rate and therefore a higher lender yield. Prosper loans follow higher risk, higher returns. Higher risk loans also come with a higher estimated loss.
 
-There's a significant increase of charged off and defaulted loans as the lender yield increases
+There is a significant increase in the number of charged off and defaulted loans as the lender yield increases
 
 # Multivariate Analysis
 
@@ -691,6 +735,25 @@ During the bivariate analysis a few interesting relationships emerged, including
  - employment status and prosper rating.
 
 In this section I will further investigate these relationships.
+
+**Employment Duration**
+
+I find it intesting that borrowers who have had an employment status of more than 30 years borrow from Prosper for Debt Consolidation. Although given the vast majority of loans are for Debt Consolidation maybe it is not so surprising.
+
+
+
+```{r Employment Duration by Loan Status, echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(aes(x = EmploymentStatusDuration/12), data = subset(loanData, LoanCategory != "NA" & EmploymentCategory != "NA")) +
+  geom_histogram(aes(fill = LoanCategory)) +
+  xlab("Duration in Years") +
+  facet_wrap(~EmploymentCategory, scales = "free")
+
+summary(loanData$EmploymentStatusDuration/12)
+
+with(subset(loanData, EmploymentStatusDuration/12 >= 25), table(ListingCategory, EmploymentStatus))
+
+```
 
 **Lender Yield fall the lower the loan risk**
 
